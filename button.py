@@ -2,7 +2,7 @@ from pygame import Color, Surface, draw, font
 
 
 class Button:
-    def __init__(self, x: int, y: int, width: int, height: int, text: str, font_size: int, color: str = 'grey',
+    def __init__(self, x: int, y: int, width: int, height: int, text: str, font_size: int, func, color: str = 'grey',
                  hovered_color: str = 'dark grey'):
         self.x = x
         self.y = y
@@ -12,6 +12,7 @@ class Button:
         self.font_size = font_size
         self.color = Color(color)
         self.hovered_color = Color(hovered_color)
+        self.function = func
 
         self.rendered_text = None
         self.is_hovered = False
@@ -39,3 +40,5 @@ class Button:
         elif not self.is_hovered and is_on_button:
             self._draw(surface, self.hovered_color)
             self.is_hovered = True
+
+        return is_on_button

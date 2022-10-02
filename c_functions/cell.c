@@ -1,6 +1,6 @@
 #define LIFE 0b00000111
 
-void calculate_next_generation(char* cells, int width, int height)
+void calculate_next_generation(char* cells, unsigned int width, unsigned int height)
 {
     char sum = 0;
     
@@ -129,10 +129,7 @@ void calculate_next_generation(char* cells, int width, int height)
         sum += cells[i + width + 1] & LIFE;
         cells[i] += sum << 4;
 
-        i++;
-
-        if (i_width == width - 1)
-            i += 2;
+        i = i_width == (width - 1) ? i + 3 : i + 1;
     }
 
     char x_1, x_2, x_3, x_4 = 0;
@@ -149,7 +146,14 @@ void calculate_next_generation(char* cells, int width, int height)
         previous_cell = cells[i] & LIFE;
         cells[i] = (x_1 & x_2 & x_3) | (x_1 & x_2 & x_4);
 
-        if (previous_cell ^ cells[i])
+        if (!(previous_cell ^ cells[i]))
             cells[i] += 0b10000000;
+
     }
+}
+
+void change_cell_value(char* array, unsigned int x, unsigned int y, unsigned int width, unsigned int height)
+{
+    int i = y * width + x;
+    array[i] = ~array[i] & 0b00000001;
 }
