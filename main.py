@@ -1,4 +1,5 @@
 import pygame
+from pygame.time import Clock
 from pygame.locals import *
 from cells import *
 from button import *
@@ -26,7 +27,7 @@ class GameOfLife:
 
         self._display = pygame.display.set_mode((self._screen_width, self._screen_height), flags=flags)
         self._cells = Cells(self._cell_w_count, self._cell_h_count)
-        self._clock: pygame.time.Clock = None
+        self._clock: Clock = None
         self._is_running = False
 
         self._buttons = [
@@ -37,10 +38,15 @@ class GameOfLife:
             Button(x=width + 12, y=90, width=78, height=30, func=self._clear,
                    text='Clear', font_size=25, color='grey'),
             Button(x=width + 12, y=130, width=78, height=30, func=self._set_random,
-                   text='Random', font_size=25, color='grey')
+                   text='Random', font_size=25, color='grey'),
+            Button(x=width + 12, y=170, width=30, height=30, func=self._increase_update_speed,
+                   text='+', font_size=30, color='grey'),
+            Button(x=width + 12, y=210, width=30, height=30, func=self._decrease_update_speed,
+                   text='-', font_size=30, color='grey')
         ]
 
         self._info_label = Label(x=width + 12, y=height - 50, width=78, height=30, text='Stopped', font_size=25)
+        self._update_label = Label(x=width + 52, y=190, width=30, height=30, text='0', font_size=25)
 
     def _draw_cells(self, cells_array: list):
         for y in range(0, self._cell_h_count):
@@ -48,8 +54,7 @@ class GameOfLife:
                 if cells_array[y * self._cell_w_count + x] < 128:
                     color: Color = Color(self._cell_colors[cells_array[y * self._cell_w_count + x]])
                     draw.rect(
-                        self._display,
-                        color,
+                        self._display, color,
                         (x * self._cell_size, y * self._cell_size, self._cell_size, self._cell_size))
 
     def _draw_menu(self):
@@ -59,6 +64,7 @@ class GameOfLife:
             button.draw(self._display)
 
         self._info_label.draw_text(self._display)
+        self._update_label.draw_text(self._display, f'{self._update}')
 
     def _mouse_process(self, mouse_click: bool):
         mouse_pos = pygame.mouse.get_pos()
@@ -94,6 +100,18 @@ class GameOfLife:
         self._cells.change_cell(x, y)
         self._draw_cells(self._cells.array)
 
+    def _increase_update_speed(self):
+        if self._update < 90:
+            self._update += 1
+            pygame.time.set_timer(pygame.USEREVENT, 1000 // self._update)
+            self._update_label.draw_text(self._display, f'{self._update}')
+
+    def _decrease_update_speed(self):
+        if self._update > 1:
+            self._update -= 1
+            pygame.time.set_timer(pygame.USEREVENT, 1000 // self._update)
+            self._update_label.draw_text(self._display, f'{self._update}')
+
     def _update_cells(self) -> None:
         if self._is_running:
             self._cells.calculate_next_generation()
@@ -101,10 +119,10 @@ class GameOfLife:
 
     def _init_pygame(self) -> None:
         pygame.init()
-        self._clock = pygame.time.Clock()
+        self._clock = Clock()
         pygame.time.set_timer(pygame.USEREVENT, 1000 // self._update)
         pygame.display.set_caption('Game of life')
-        pygame.event.set_allowed([QUIT, MOUSEBUTTONDOWN])
+        pygame.event.set_allowed([QUIT, MOUSEBUTTONDOWN, K_SPACE])
 
         self._display.fill(Color('white'))
         self._draw_menu()
@@ -131,6 +149,12 @@ class GameOfLife:
                     case pygame.USEREVENT:
                         update_cells = True
 
+                    case pygame.KEYDOWN:
+                        if self._is_running and event.key == pygame.K_SPACE:
+                            self._stop_func()
+                        elif event.key == pygame.K_SPACE:
+                            self._run_func()
+
             self._mouse_process(mouse_click)
             mouse_click = False
 
@@ -143,5 +167,5 @@ class GameOfLife:
 
 
 if __name__ == '__main__':
-    game = GameOfLife(600, 600, 3, 60, 30)
+    game = GameOfLife(1200, 1200, 6, 60, 60)
     game.run()
